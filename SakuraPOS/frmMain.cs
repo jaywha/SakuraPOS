@@ -10,26 +10,30 @@ namespace SakuraPOS
 {
     public partial class frmMain : Form
     {
-        private System.Threading.Timer clock;
+        private readonly System.Threading.Timer clock;
+        private readonly string pwd;
+        private const string queryParms = "authSource=admin&replicaSet=atlas-ehyha0-shard-0&readPreference=primary&ssl=true";
+        private readonly MongoClient DBClient;
 
         public frmMain()
         {
             InitializeComponent();
             clock = new(clockTick, new AutoResetEvent(false), 0, 1000);
+            pwd = Encoding.UTF8.GetString(Convert.FromBase64String("Z3Jvb3Z5NGFsbA=="));
+            DBClient = new MongoClient($"mongodb+srv://gcadmin:{pwd}@rhythm-gnome-db.5tddy.mongodb.net/test?{queryParms}");
         }
 
         private async void connectToDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (DBClient == null) {
+                MessageBox.Show("Database Client Not Initialized!");
+                throw new MongoConnectionException(null, "Couldn't connect to rhythm-gnome-db data server!");
+            }
+
             pnlMenuTypes.Controls.Clear();
 
-            byte[] enc = Convert.FromBase64String("Z3Jvb3Z5NGFsbA==");
-            string pwd = Encoding.UTF8.GetString(enc);
-
             // Replace the uri string with your MongoDB deployment's connection string.
-            var client = new MongoClient(
-                $"mongodb+srv://gcadmin:{pwd}@rhythm-gnome-db.5tddy.mongodb.net/test?authSource=admin&replicaSet=atlas-ehyha0-shard-0&readPreference=primary&ssl=true"
-            );
-            var database = client.GetDatabase("Sakura-POS-DB");
+            var database = DBClient.GetDatabase("Sakura-POS-DB");
             var collection = database.GetCollection<POSMenuCategoryModel>("menu_categories");
 
             using var cursor = await collection
