@@ -13,15 +13,19 @@ namespace SakuraPOS
     {
         private readonly System.Threading.Timer clock;
         private readonly string pwd;
-        private const string queryParms = "authSource=admin&replicaSet=atlas-ehyha0-shard-0&readPreference=primary&ssl=true";
         private readonly MongoClient DBClient;
+
+        private const int MenuButtonHeight = 60;
+        private const int MenuButtonWidth = 120;
+        private const string MongoDBName = "Sakura-POS-DB";
+        private const string QueryParms = "authSource=admin&replicaSet=atlas-ehyha0-shard-0&readPreference=primary&ssl=true";
 
         public frmMain()
         {
             InitializeComponent();
             clock = new(clockTick, new AutoResetEvent(false), 0, 1000);
             pwd = Encoding.UTF8.GetString(Convert.FromBase64String("Z3Jvb3Z5NGFsbA=="));
-            DBClient = new MongoClient($"mongodb+srv://gcadmin:{pwd}@rhythm-gnome-db.5tddy.mongodb.net/test?{queryParms}");
+            DBClient = new MongoClient($"mongodb+srv://gcadmin:{pwd}@rhythm-gnome-db.5tddy.mongodb.net/test?{QueryParms}");
         }
 
         private async void connectToDBToolStripMenuItem_Click(object sender, EventArgs e)
@@ -40,7 +44,7 @@ namespace SakuraPOS
         private void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
         {
             GetDBItems<POSMenuFoodItemModel>(
-                "category_items",
+                "menu_foodItems",
                 model => model.IsActive == true && model.Category == (sender as Button).Text,
                 model => model.Position,
                 Color.LightGray,
@@ -68,10 +72,10 @@ namespace SakuraPOS
                 throw new MongoConnectionException(null, "Couldn't connect to rhythm-gnome-db data server!");
             }
 
-            pnlMenuTypes.Controls.Clear();
+            targetPanel.Controls.Clear();
 
             // Replace the uri string with your MongoDB deployment's connection string.
-            var database = DBClient.GetDatabase("Sakura-POS-DB");
+            var database = DBClient.GetDatabase(MongoDBName);
             var collection = database.GetCollection<T>(collectionName);
 
             using var cursor = await collection
@@ -80,6 +84,8 @@ namespace SakuraPOS
                 .ToCursorAsync();
             while (await cursor.MoveNextAsync())
             {
+                if (cursor.Current == null) continue;
+
                 foreach (dynamic doc in cursor.Current)
                 {
                     if (doc.Name == null) continue;
@@ -88,8 +94,8 @@ namespace SakuraPOS
                     var btn = new Button()
                     {
                         Text = doc.Name,
-                        Height = 60,
-                        Width = 120,
+                        Height = MenuButtonHeight,
+                        Width = MenuButtonWidth,
                         BackColor = menutItemBackColor,
                         ForeColor = menutItemForeColor
                     };
