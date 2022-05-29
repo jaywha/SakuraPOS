@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SakuraPOS.Models
 {
-    internal record POSMenuCategoryModel
+    internal record POSMenuFoodItemModel
     {
         [BsonElement("_id")]
         public ObjectId Id { get; set; }
@@ -21,6 +21,9 @@ namespace SakuraPOS.Models
 
         [BsonElement("position")]
         public int Position { get; set; }
+
+        [BsonElement("category")]
+        public string? Category { get; set; }
 
         public override string ToString() => Name ?? "NO_NAME";
     }

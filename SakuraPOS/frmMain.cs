@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Text;
 using WinForms = System.Windows.Forms;
+using LinqExp = System.Linq.Expressions;
 
 namespace SakuraPOS
 {
@@ -25,7 +26,44 @@ namespace SakuraPOS
 
         private async void connectToDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (DBClient == null) {
+            GetDBItems<POSMenuCategoryModel>(
+                "menu_categories",
+                model => model.IsActive == true,
+                model => model.Position,
+                Color.CadetBlue,
+                Color.White,
+                HandleMenuCategoryButtonClick,
+                pnlMenuTypes
+            );
+        }
+
+        private void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
+        {
+            GetDBItems<POSMenuFoodItemModel>(
+                "category_items",
+                model => model.IsActive == true && model.Category == (sender as Button).Text,
+                model => model.Position,
+                Color.LightGray,
+                Color.Black,
+                HanldeMenuFoodItemButtonClick,
+                pnlMenuItems
+            );
+        }
+
+        private void HanldeMenuFoodItemButtonClick(object? sender, EventArgs e)
+        {
+            // TODO: Add Food Items to a list on the far right
+        }
+
+        private async void GetDBItems<T>(string collectionName,
+            LinqExp.Expression<Func<T, bool>> findExpression,
+            LinqExp.Expression<Func<T, object>> sortByExpression,
+            Color menutItemBackColor,
+            Color menutItemForeColor,
+            EventHandler menuItemClickHandler,
+            FlowLayoutPanel targetPanel) {
+            if (DBClient == null)
+            {
                 MessageBox.Show("Database Client Not Initialized!");
                 throw new MongoConnectionException(null, "Couldn't connect to rhythm-gnome-db data server!");
             }
@@ -34,35 +72,31 @@ namespace SakuraPOS
 
             // Replace the uri string with your MongoDB deployment's connection string.
             var database = DBClient.GetDatabase("Sakura-POS-DB");
-            var collection = database.GetCollection<POSMenuCategoryModel>("menu_categories");
+            var collection = database.GetCollection<T>(collectionName);
 
             using var cursor = await collection
-                .Find(model => model.IsActive == true)
-                .SortBy(model => model.Position)
+                .Find(findExpression)
+                .SortBy(sortByExpression)
                 .ToCursorAsync();
             while (await cursor.MoveNextAsync())
             {
-                foreach (var doc in cursor.Current)
+                foreach (dynamic doc in cursor.Current)
                 {
                     if (doc.Name == null) continue;
 
                     // Debug.WriteLine(doc.Name);
-                    var btn = new Button() { 
+                    var btn = new Button()
+                    {
                         Text = doc.Name,
                         Height = 60,
                         Width = 120,
-                        BackColor = Color.CadetBlue,
-                        ForeColor = Color.White
+                        BackColor = menutItemBackColor,
+                        ForeColor = menutItemForeColor
                     };
-                    btn.Click += HandleMenuCategoryButtonClick;
-                    pnlMenuTypes.Controls.Add(btn);
+                    btn.Click += menuItemClickHandler;
+                    targetPanel.Controls.Add(btn);
                 }
             }
-        }
-
-        private void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
-        {
-            //TODO: Handle Menu Load Based on Category Name
         }
 
         private void clockTick(object? stateInfo)
