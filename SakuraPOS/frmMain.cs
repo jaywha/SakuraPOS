@@ -30,7 +30,7 @@ namespace SakuraPOS
 
         private async void connectToDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            GetDBItems<POSMenuCategoryModel>(
+            await GetDBItems<POSMenuCategoryModel>(
                 "menu_categories",
                 model => model.IsActive == true,
                 model => model.Position,
@@ -41,9 +41,9 @@ namespace SakuraPOS
             );
         }
 
-        private void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
+        private async void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
         {
-            GetDBItems<POSMenuFoodItemModel>(
+            await GetDBItems<POSMenuFoodItemModel>(
                 "menu_foodItems",
                 model => model.IsActive == true && model.Category == (sender as Button).Text,
                 model => model.Position,
@@ -59,7 +59,7 @@ namespace SakuraPOS
             // TODO: Add Food Items to a list on the far right
         }
 
-        private async void GetDBItems<T>(string collectionName,
+        private async Task GetDBItems<T>(string collectionName,
             LinqExp.Expression<Func<T, bool>> findExpression,
             LinqExp.Expression<Func<T, object>> sortByExpression,
             Color menutItemBackColor,
