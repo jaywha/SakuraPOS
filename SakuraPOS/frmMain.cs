@@ -30,7 +30,7 @@ namespace SakuraPOS
 
         private async void connectToDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            await GetDBItems<POSMenuCategoryModel>(
+            await FillUIMenuItemsFromDB<POSMenuCategoryModel>(
                 "menu_categories",
                 model => model.IsActive == true,
                 model => model.Position,
@@ -43,7 +43,7 @@ namespace SakuraPOS
 
         private async void HandleMenuCategoryButtonClick(object? sender, EventArgs e)
         {
-            await GetDBItems<POSMenuFoodItemModel>(
+            await FillUIMenuItemsFromDB<POSMenuFoodItemModel>(
                 "menu_foodItems",
                 model => model.IsActive == true && model.Category == (sender as Button).Text,
                 model => model.Position,
@@ -56,10 +56,15 @@ namespace SakuraPOS
 
         private void HanldeMenuFoodItemButtonClick(object? sender, EventArgs e)
         {
-            // TODO: Add Food Items to a list on the far right
+            var itemName = (sender as Button).Tag as POSMenuFoodItemModel;
+            if (itemName == null || itemName.Price == null) {
+                MessageBox.Show("Menu Item doesn't have a price!", "Missing Price", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }            
+            lstbxCurrentCart.Items.Add($"{itemName.Name} ({itemName.Price})");
         }
 
-        private async Task GetDBItems<T>(string collectionName,
+        private async Task FillUIMenuItemsFromDB<T>(string collectionName,
             LinqExp.Expression<Func<T, bool>> findExpression,
             LinqExp.Expression<Func<T, object>> sortByExpression,
             Color menutItemBackColor,
@@ -94,6 +99,7 @@ namespace SakuraPOS
                     var btn = new Button()
                     {
                         Text = doc.Name,
+                        Tag = doc,
                         Height = MenuButtonHeight,
                         Width = MenuButtonWidth,
                         BackColor = menutItemBackColor,
@@ -108,6 +114,11 @@ namespace SakuraPOS
         private void clockTick(object? stateInfo)
         {
             strpBottomTimestamp.Text = DateTime.Now.ToString("T");
+        }
+
+        private void btnRemoveItem_Click(object sender, EventArgs e)
+        {
+            lstbxCurrentCart.Items.Remove(lstbxCurrentCart.SelectedItem);
         }
     }
 }

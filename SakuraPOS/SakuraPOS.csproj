@@ -6,13 +6,26 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>_sakura_pos_ico.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\_sakura_pos_ico.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="_sakura_pos_ico.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="2.15.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.15.1" />
     <PackageReference Include="MongoDB.Driver.Core" Version="2.15.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SplashScreen Include="Resources\_sakura_pos_ico.png" />
   </ItemGroup>
 
 </Project>

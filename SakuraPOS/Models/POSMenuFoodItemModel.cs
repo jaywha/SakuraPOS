@@ -25,6 +25,9 @@ namespace SakuraPOS.Models
         [BsonElement("category")]
         public string? Category { get; set; }
 
+        [BsonElement("price")]
+        public double? Price { get; set; }
+
         public override string ToString() => Name ?? "NO_NAME";
     }
 }
