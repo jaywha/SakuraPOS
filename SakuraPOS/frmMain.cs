@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Text;
 using WinForms = System.Windows.Forms;
 using LinqExp = System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace SakuraPOS
 {
@@ -54,14 +55,22 @@ namespace SakuraPOS
             );
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void HanldeMenuFoodItemButtonClick(object? sender, EventArgs e)
         {
+            if (sender == null) {
+                Debug.WriteLine($"Sending button was null??? {new StackFrame(1, true).GetMethod()?.Name}");
+                return;
+            }
+
             var itemName = (sender as Button).Tag as POSMenuFoodItemModel;
-            if (itemName == null || itemName.Price == null) {
+            if (itemName == null || itemName.Price == null)
+            {
                 MessageBox.Show("Menu Item doesn't have a price!", "Missing Price", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
-            }            
-            lstbxCurrentCart.Items.Add($"{itemName.Name} ({itemName.Price})");
+            }
+
+            lstbxCurrentCart.Items.Add($"{itemName.Name}\t{itemName.Price:C}");
         }
 
         private async Task FillUIMenuItemsFromDB<T>(string collectionName,
